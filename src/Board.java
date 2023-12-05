@@ -25,18 +25,6 @@ public class Board extends JPanel {
 
     private Timer timer;
     private int timeElapsed = 0;
-    private String gameFrame
-            = "    ######\n"
-            + "    ##   #\n"
-            + "    ##$  #\n"
-            + "  ####  $##\n"
-            + "  ##  $ $ #\n"
-            + "#### # ## #   ######\n"
-            + "##   # ## #####  ..#\n"
-            + "## $  $          ..#\n"
-            + "###### ### #@##  ..#\n"
-            + "    ##     #########\n"
-            + "    ########\n";
 
     public Board() {
 
@@ -70,6 +58,18 @@ public class Board extends JPanel {
         Wall wall;
         Baggage b;
         BaseArea a;
+
+        String gameFrame = "    ######\n"
+                + "    ##   #\n"
+                + "    ##$  #\n"
+                + "  ####  $##\n"
+                + "  ##  $ $ #\n"
+                + "#### # ## #   ######\n"
+                + "##   # ## #####  ..#\n"
+                + "## $  $          ..#\n"
+                + "###### ### #@##  ..#\n"
+                + "    ##     #########\n"
+                + "    ########\n";
 
         for (int i = 0; i < gameFrame.length(); i++) {
 
@@ -150,14 +150,20 @@ public class Board extends JPanel {
             }
 
             g.setColor(new Color(255, 255, 244));
-            g.drawString("Moves:" + "    " + gameLogic.moveCount, 375, 20);g.drawString("Time:" + "    " + timeElapsed + " seconds", 375, 40);
-            g.drawString("Up : W, ↑", 100, 300);
-            g.drawString("Left : A, ←", 25, 330);
-            g.drawString("Down : S, ↓", 100, 330);
-            g.drawString("Right : D, →", 175, 330);
+            String formattedTime = formatTime(timeElapsed);
+            g.drawString("Moves:" + "    " + gameLogic.moveCount, 375, 20);g.drawString("Time:" + "    " + formattedTime, 375, 40);
+            g.drawString("Up : W,  ↑", 100, 300);
+            g.drawString("Left : A,  ←", 25, 330);
+            g.drawString("Down : S,  ↓", 100, 330);
+            g.drawString("Right : D,  →", 175, 330);
             if (isCompleted) {
-                g.drawString("Completed", 25, 20);
-
+                g.drawString("Finish", 25, 20);
+                g.drawString("New Game [ N ]", 375, 300);
+                g.drawString("CONGRATULATION", 175, 375);
+            }else if(gameLogic.moveCount>0) {
+                g.drawString("Restart [ R ]", 375, 300);
+            } else {
+                g.drawString("Start [ W,  ↑ ]", 375, 300);
             }
 
         }
@@ -178,11 +184,11 @@ public class Board extends JPanel {
 
         @Override
         public void keyPressed(KeyEvent e) {
-            if(gameLogic.moveCount == 0){
+            Direction direction = mapKeyToDirection(e.getKeyCode());
+
+            if(gameLogic.moveCount == 0 && direction == Direction.UP){
                 startTimer();
             }
-
-            Direction direction = mapKeyToDirection(e.getKeyCode());
             if (direction != null) {
                 switch (direction) {
                     case LEFT:
@@ -282,6 +288,13 @@ public class Board extends JPanel {
           }, 1000, 1000);
 
       }
+
+    private String formatTime(int totalSeconds) {
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        return String.format("%02d:%02d", minutes, seconds);
+    }
 
 }
 
