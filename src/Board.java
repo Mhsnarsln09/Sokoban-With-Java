@@ -11,7 +11,7 @@ public class Board extends JPanel {
 
     private final int OFFSET = 30;
     private final int SPACE = 20;
-   
+
     private ArrayList<Wall> walls;
     private ArrayList<Baggage> baggs;
     private ArrayList<BaseArea> areas;
@@ -151,7 +151,8 @@ public class Board extends JPanel {
 
             g.setColor(new Color(255, 255, 244));
             String formattedTime = formatTime(timeElapsed);
-            g.drawString("Moves:" + "    " + gameLogic.moveCount, 375, 20);g.drawString("Time:" + "    " + formattedTime, 375, 40);
+            g.drawString("Moves:" + "    " + gameLogic.moveCount, 375, 20);
+            g.drawString("Time:" + "    " + formattedTime, 375, 40);
             g.drawString("Up : W,  ↑", 100, 300);
             g.drawString("Left : A,  ←", 25, 330);
             g.drawString("Down : S,  ↓", 100, 330);
@@ -160,7 +161,7 @@ public class Board extends JPanel {
                 g.drawString("Finish", 25, 20);
                 g.drawString("New Game [ N ]", 375, 300);
                 g.drawString("CONGRATULATION", 175, 375);
-            }else if(gameLogic.moveCount>0) {
+            } else if (gameLogic.moveCount > 0) {
                 g.drawString("Restart [ R ]", 375, 300);
             } else {
                 g.drawString("Start [ W,  ↑ ]", 375, 300);
@@ -186,7 +187,7 @@ public class Board extends JPanel {
         public void keyPressed(KeyEvent e) {
             Direction direction = mapKeyToDirection(e.getKeyCode());
 
-            if(gameLogic.moveCount == 0 && direction == Direction.UP){
+            if (gameLogic.moveCount == 0 && direction == Direction.UP) {
                 startTimer();
             }
             if (direction != null) {
@@ -225,8 +226,6 @@ public class Board extends JPanel {
             };
         }
     }
-
-
 
     public void isCompleted() {
 
@@ -274,20 +273,19 @@ public class Board extends JPanel {
     }
 
 
-
     private void startTimer() {
         timer = new Timer();
-          timer.scheduleAtFixedRate(new TimerTask() {
-              @Override
-              public void run() {
-                  if (!isCompleted) {
-                      timeElapsed++;
-                      repaint();
-                  }
-              }
-          }, 1000, 1000);
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (!isCompleted) {
+                    timeElapsed++;
+                    repaint();
+                }
+            }
+        }, 1000, 1000);
 
-      }
+    }
 
     private String formatTime(int totalSeconds) {
         int minutes = totalSeconds / 60;
