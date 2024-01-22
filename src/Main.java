@@ -14,7 +14,7 @@ public class Main extends JFrame {
         Board board = new Board();
         add(board);
 
-        setTitle("Muhsin ARSLAN Y230240067 Sokoban Game");
+        setTitle("Muhsin ARSLAN Y230240067 Sokoban Game-Final");
 
         setSize(board.getBoardWidth() + OFFSET,
                 board.getBoardHeight() + 2 * OFFSET);

@@ -1,11 +1,10 @@
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import javax.swing.JPanel;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.swing.JPanel;
 
 public class Board extends JPanel {
 
@@ -15,24 +14,23 @@ public class Board extends JPanel {
     private ArrayList<Wall> walls;
     private ArrayList<Baggage> baggs;
     private ArrayList<BaseArea> areas;
-
+    private ArrayList<SkateBoardPower> skateBoardPower;
+    private ArrayList<GoalWizard> goalWizard;
     private GameLogic gameLogic;
+
     private Player player;
     private int w = 0;
     private int h = 0;
 
     private boolean isCompleted = false;
-
     private Timer timer;
     private int timeElapsed = 0;
 
     public Board() {
-
         initBoard();
     }
 
     private void initBoard() {
-
         addKeyListener(new TAdapter());
         setFocusable(true);
         initWorld();
@@ -46,85 +44,6 @@ public class Board extends JPanel {
         return this.h;
     }
 
-    private void initWorld() {
-
-        walls = new ArrayList<>();
-        baggs = new ArrayList<>();
-        areas = new ArrayList<>();
-
-        int x = OFFSET;
-        int y = OFFSET;
-
-        Wall wall;
-        Baggage b;
-        BaseArea a;
-
-        String gameFrame = "    ######\n"
-                + "    ##   #\n"
-                + "    ##$  #\n"
-                + "  ####  $##\n"
-                + "  ##  $ $ #\n"
-                + "#### # ## #   ######\n"
-                + "##   # ## #####  ..#\n"
-                + "## $  $          ..#\n"
-                + "###### ### #@##  ..#\n"
-                + "    ##     #########\n"
-                + "    ########\n";
-
-        for (int i = 0; i < gameFrame.length(); i++) {
-
-            char item = gameFrame.charAt(i);
-
-            switch (item) {
-
-                case '\n':
-                    y += SPACE;
-
-                    if (this.w < x) {
-                        this.w = x;
-                    }
-
-                    x = OFFSET;
-                    break;
-
-                case '#':
-                    wall = new Wall(x, y);
-                    walls.add(wall);
-                    x += SPACE;
-                    break;
-
-                case '$':
-                    b = new Baggage(x, y);
-                    baggs.add(b);
-                    x += SPACE;
-                    break;
-
-                case '.':
-                    a = new BaseArea(x, y);
-                    areas.add(a);
-                    x += SPACE;
-                    break;
-
-                case '@':
-                    player = new Player(x, y);
-                    x += SPACE;
-                    break;
-
-                case ' ':
-                    x += SPACE;
-                    break;
-
-                default:
-                    break;
-            }
-
-            h = y;
-        }
-
-        gameLogic = new GameLogic(SPACE, walls, baggs, player, this::isCompleted);
-
-    }
-
     private void buildWorld(Graphics g) {
 
         g.setColor(new Color(40, 40, 40));
@@ -135,19 +54,28 @@ public class Board extends JPanel {
         world.addAll(walls);
         world.addAll(areas);
         world.addAll(baggs);
+        world.addAll(skateBoardPower);
+        world.addAll(goalWizard);
         world.add(player);
 
         for (int i = 0; i < world.size(); i++) {
 
             Actor item = world.get(i);
-
-            if (item instanceof Player || item instanceof Baggage) {
-
-                g.drawImage(item.getImage(), item.x() + 2, item.y() + 2, this);
-            } else {
+//
+            if ((item instanceof SkateBoardPower || item instanceof GoalWizard) && gameLogic.isPowerShow && !gameLogic.isSkateBoard && !gameLogic.isGoalWizard) {
 
                 g.drawImage(item.getImage(), item.x(), item.y(), this);
+
+            }else if (item instanceof Player || item instanceof Baggage) {
+
+                g.drawImage(item.getImage(), item.x() + 2, item.y() + 2 , this);
+
+            }else if ( item instanceof Wall || item instanceof BaseArea) {
+
+                g.drawImage(item.getImage(), item.x(), item.y() , this);
+
             }
+
 
             g.setColor(new Color(255, 255, 244));
             String formattedTime = formatTime(timeElapsed);
@@ -167,6 +95,14 @@ public class Board extends JPanel {
                 g.drawString("Start [ W,  ↑ ]", 375, 300);
             }
 
+            if(gameLogic.isGoalWizard) {
+                g.drawString("Hedef Sihirbazı Etkin", 375, 330);
+                g.drawString("Dikkat Et Her Güç Aynı Zamanda Bir Zehirdir.", 125, 400);
+            }else if(gameLogic.isSkateBoard) {
+                g.drawString("Kaykay Etkin", 375, 330);
+                g.drawString("Dikkat Et Her Güç Aynı Zamanda Bir Zehirdir.", 125, 400);
+            }
+
         }
     }
 
@@ -177,6 +113,64 @@ public class Board extends JPanel {
         buildWorld(g);
     }
 
+    private void initWorld() {
+        walls = new ArrayList<>();
+        baggs = new ArrayList<>();
+        areas = new ArrayList<>();
+        skateBoardPower = new ArrayList<>();
+        goalWizard = new ArrayList<>();
+
+        int x = OFFSET;
+        int y = OFFSET;
+
+        String levelDesign = GameConfig.getInstance().getProperty("levelDesign");
+        for (int i = 0; i < levelDesign.length(); i++) {
+            char item = levelDesign.charAt(i);
+
+            switch (item) {
+                case '\n':
+                    y += SPACE;
+                    if (this.w < x) {
+                        this.w = x;
+                    }
+                    x = OFFSET;
+                    break;
+                case '#':
+                    walls.add(GameObjectFactory.createWall(x, y));
+                    x += SPACE;
+                    break;
+                case '$':
+                    baggs.add(GameObjectFactory.createBaggage(x, y));
+                    x += SPACE;
+                    break;
+                case '.':
+                    areas.add(GameObjectFactory.createBaseArea(x, y));
+                    x += SPACE;
+                    break;
+                case '!':
+                    skateBoardPower.add(GameObjectFactory.skateBoardPower(x, y));
+                    x += SPACE;
+                    break;
+                case '%':
+                    goalWizard.add(GameObjectFactory.goalWizard(x, y));
+                    x += SPACE;
+                    break;
+                case '@':
+                    player = GameObjectFactory.createPlayer(x, y);
+                    x += SPACE;
+                    break;
+
+                case ' ':
+                    x += SPACE;
+                    break;
+
+                default:
+                    break;
+            }
+            h = y;
+        }
+        gameLogic = new GameLogic(SPACE, walls, baggs, areas, player, skateBoardPower, goalWizard, this::isCompleted);
+    }
     private enum Direction {
         LEFT, RIGHT, UP, DOWN, RESTART
     }
@@ -214,18 +208,33 @@ public class Board extends JPanel {
             }
             repaint();
         }
-
-        private Direction mapKeyToDirection(int keyCode) {
-            return switch (keyCode) {
-                case KeyEvent.VK_LEFT, KeyEvent.VK_A -> Direction.LEFT;
-                case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> Direction.RIGHT;
-                case KeyEvent.VK_UP, KeyEvent.VK_W -> Direction.UP;
-                case KeyEvent.VK_DOWN, KeyEvent.VK_S -> Direction.DOWN;
-                case KeyEvent.VK_R, KeyEvent.VK_N -> Direction.RESTART;
-                default -> null;
-            };
-        }
     }
+    private Direction mapKeyToDirection(int keyCode) {
+        int leftKey = Integer.parseInt(GameConfig.getInstance().getProperty("leftKey"));
+        int leftAKey = Integer.parseInt(GameConfig.getInstance().getProperty("leftAKey"));
+        int rightKey = Integer.parseInt(GameConfig.getInstance().getProperty("rightKey"));
+        int rightDKey = Integer.parseInt(GameConfig.getInstance().getProperty("rightDKey"));
+        int upKey = Integer.parseInt(GameConfig.getInstance().getProperty("upKey"));
+        int upWKey = Integer.parseInt(GameConfig.getInstance().getProperty("upWKey"));
+        int downKey = Integer.parseInt(GameConfig.getInstance().getProperty("downKey"));
+        int downSKey = Integer.parseInt(GameConfig.getInstance().getProperty("downSKey"));
+        int restartKey = Integer.parseInt(GameConfig.getInstance().getProperty("restartKey"));
+        int newGameKey = Integer.parseInt(GameConfig.getInstance().getProperty("newGameKey"));
+
+        if (keyCode == leftKey || keyCode == leftAKey){
+            return  Direction.LEFT;
+        } else  if (keyCode == rightKey || keyCode == rightDKey){
+            return  Direction.RIGHT;
+        } else  if (keyCode == upKey || keyCode == upWKey){
+            return  Direction.UP;
+        } else  if (keyCode == downKey || keyCode == downSKey){
+            return  Direction.DOWN;
+        } else  if ((keyCode == restartKey && !isCompleted) || (keyCode == newGameKey && isCompleted)){
+            return  Direction.RESTART;
+        }
+        return null;
+    }
+
 
     public void isCompleted() {
 
@@ -261,15 +270,17 @@ public class Board extends JPanel {
         walls.clear();
 
         gameLogic.moveCount = 0;
-
         timer.cancel();
         timeElapsed = 0;
+        gameLogic.isPowerShow = false;
+        gameLogic.firstMoveCountWithPowerShow = 0;
+        gameLogic.firstStepWithPower = 0;
 
         initWorld();
-
         if (isCompleted) {
             isCompleted = false;
         }
+
     }
 
 
@@ -280,10 +291,15 @@ public class Board extends JPanel {
             public void run() {
                 if (!isCompleted) {
                     timeElapsed++;
+                    if (!gameLogic.isPowerShow && (timeElapsed % 7 == 0)){
+                        gameLogic.isPowerShow = true;
+                        gameLogic.firstMoveCountWithPowerShow = gameLogic.moveCount;
+                    }
+
                     repaint();
                 }
             }
-        }, 1000, 1000);
+        }, 0, 1000);
 
     }
 
@@ -293,6 +309,4 @@ public class Board extends JPanel {
 
         return String.format("%02d:%02d", minutes, seconds);
     }
-
 }
-
